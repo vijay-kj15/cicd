@@ -1,37 +1,35 @@
-name: Flutter CI
+android:
+  runs-on: ubuntu-latest
 
-on:
-  push:
-    branches: [ main ]
+  steps:
+    - uses: actions/checkout@v3
 
-jobs:
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.4'
 
-  android:
-    runs-on: ubuntu-latest
+    - run: flutter pub get
+    - run: flutter analyze
+    - run: flutter test
 
-    steps:
-      - uses: actions/checkout@v3
+    # 🔥 Build APK
+    - name: Build APK
+      run: flutter build apk --release
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.27.4'
+    # 🔥 Build AAB (Play Store)
+    - name: Build App Bundle
+      run: flutter build appbundle --release
 
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-      - run: flutter build apk --release
+    # 📦 Upload APK
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
 
-  ios:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.27.4'
-
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-      - run: flutter build ios --release --no-codesign
+    # 📦 Upload AAB
+    - name: Upload AAB
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-aab
+        path: build/app/outputs/bundle/release/app-release.aab
